@@ -5,7 +5,7 @@ import { productsApi } from '../lib/business';
 import type { Product } from '../lib/business';
 
 export default function ProductsPage() {
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, loading: workspaceLoading } = useWorkspace();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -115,6 +115,14 @@ export default function ProductsPage() {
       setError('Failed to delete product');
     }
   };
+
+  if (workspaceLoading) {
+    return (
+      <Layout title="Products">
+        <div className="text-center text-gray-500 py-8">Loading...</div>
+      </Layout>
+    );
+  }
 
   if (!currentWorkspace || currentWorkspace.type !== 'business') {
     return (

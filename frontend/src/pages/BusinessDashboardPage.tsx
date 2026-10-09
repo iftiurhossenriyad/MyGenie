@@ -10,7 +10,7 @@ import {
 } from '../lib/business';
 
 export default function BusinessDashboardPage() {
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, loading: workspaceLoading } = useWorkspace();
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const [stats, setStats] = useState({
     products: 0,
@@ -53,6 +53,14 @@ export default function BusinessDashboardPage() {
       active = false;
     };
   }, [currentWorkspace]);
+
+  if (workspaceLoading) {
+    return (
+      <Layout title="Business Dashboard">
+        <div className="text-center text-gray-500 py-8">Loading...</div>
+      </Layout>
+    );
+  }
 
   if (!currentWorkspace || currentWorkspace.type !== 'business') {
     return (

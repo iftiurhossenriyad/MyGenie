@@ -6,7 +6,7 @@ import { parseApiDateTime } from '../lib/datetime';
 import type { Conversation, Message } from '../lib/conversations';
 
 export default function ChatPage() {
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, loading: workspaceLoading } = useWorkspace();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -152,6 +152,14 @@ export default function ChatPage() {
       minute: '2-digit',
     });
   };
+
+  if (workspaceLoading) {
+    return (
+      <Layout title="AI Chat">
+        <div className="text-center text-gray-500 py-8">Loading...</div>
+      </Layout>
+    );
+  }
 
   if (!currentWorkspace) {
     return (

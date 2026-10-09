@@ -5,7 +5,7 @@ import api from '../lib/api';
 import type { FAQ } from '../lib/business';
 
 export default function FAQsPage() {
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, loading: workspaceLoading } = useWorkspace();
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -98,6 +98,14 @@ export default function FAQsPage() {
       setError('Failed to delete FAQ');
     }
   };
+
+  if (workspaceLoading) {
+    return (
+      <Layout title="FAQs">
+        <div className="text-center text-gray-500 py-8">Loading...</div>
+      </Layout>
+    );
+  }
 
   if (!currentWorkspace || currentWorkspace.type !== 'business') {
     return (

@@ -13,7 +13,7 @@ const BOOKING_STATUS_COLORS: Record<string, string> = {
 };
 
 export default function BookingsPage() {
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, loading: workspaceLoading } = useWorkspace();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,6 +122,14 @@ export default function BookingsPage() {
       minute: '2-digit',
     });
   };
+
+  if (workspaceLoading) {
+    return (
+      <Layout title="Bookings">
+        <div className="text-center text-gray-500 py-8">Loading...</div>
+      </Layout>
+    );
+  }
 
   if (!currentWorkspace || currentWorkspace.type !== 'business') {
     return (

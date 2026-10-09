@@ -26,7 +26,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function OrdersPage() {
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, loading: workspaceLoading } = useWorkspace();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -86,6 +86,14 @@ export default function OrdersPage() {
       minute: '2-digit',
     });
   };
+
+  if (workspaceLoading) {
+    return (
+      <Layout title="Orders">
+        <div className="text-center text-gray-500 py-8">Loading...</div>
+      </Layout>
+    );
+  }
 
   if (!currentWorkspace || currentWorkspace.type !== 'business') {
     return (

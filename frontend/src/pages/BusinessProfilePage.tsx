@@ -5,7 +5,7 @@ import { businessApi } from '../lib/business';
 import type { BusinessProfile } from '../lib/business';
 
 export default function BusinessProfilePage() {
-  const { currentWorkspace } = useWorkspace();
+  const { currentWorkspace, loading: workspaceLoading } = useWorkspace();
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -104,6 +104,14 @@ export default function BusinessProfilePage() {
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  if (workspaceLoading) {
+    return (
+      <Layout title="Business Profile">
+        <div className="text-center text-gray-500 py-8">Loading...</div>
+      </Layout>
+    );
+  }
 
   if (!currentWorkspace || currentWorkspace.type !== 'business') {
     return (
