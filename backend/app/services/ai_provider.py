@@ -103,24 +103,29 @@ class GeminiProvider(BaseAIProvider):
 
         client = genai.Client(api_key=self.api_key)
         async_client = client.aio
-        contents = [
+        conversation_steps = [
             {
-                "role": "model" if message.get("role") == "assistant" else "user",
-                "parts": [{"text": message.get("content", "")}],
+                "type": (
+                    "model_output"
+                    if message.get("role") == "assistant"
+                    else "user_input"
+                ),
+                "content": [
+                    {"type": "text", "text": message.get("content", "")}
+                ],
             }
             for message in messages
         ]
-        config: Dict[str, object] = {"max_output_tokens": max_tokens}
-        if system_prompt:
-            config["system_instruction"] = system_prompt
 
         try:
-            response = await async_client.models.generate_content(
+            response = await async_client.interactions.create(
                 model=self.model,
-                contents=contents,
-                config=config,
+                input=conversation_steps,
+                system_instruction=system_prompt or "",
+                generation_config={"max_output_tokens": max_tokens},
+                store=False,
             )
-            text = response.text
+            text = response.output_text
             if not text or not text.strip():
                 raise RuntimeError("Gemini returned an empty response")
             return text.strip()

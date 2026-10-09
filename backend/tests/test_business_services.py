@@ -407,13 +407,13 @@ class GeminiProviderTests(unittest.IsolatedAsyncioTestCase):
     async def test_generate_response_sends_history_and_closes_async_client(self):
         request = {}
 
-        class FakeModels:
-            async def generate_content(self, **kwargs):
+        class FakeInteractions:
+            async def create(self, **kwargs):
                 request.update(kwargs)
-                return type("Response", (), {"text": "  Gemini reply  "})()
+                return type("Response", (), {"output_text": "  Gemini reply  "})()
 
         class FakeAsyncClient:
-            models = FakeModels()
+            interactions = FakeInteractions()
             closed = False
 
             async def aclose(self):
@@ -447,16 +447,26 @@ class GeminiProviderTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, "Gemini reply")
         self.assertEqual(request["model"], "gemini-test")
         self.assertEqual(
-            request["contents"],
+            request["input"],
             [
-                {"role": "user", "parts": [{"text": "Hello"}]},
-                {"role": "model", "parts": [{"text": "Hi"}]},
+                {
+                    "type": "user_input",
+                    "content": [{"type": "text", "text": "Hello"}],
+                },
+                {
+                    "type": "model_output",
+                    "content": [{"type": "text", "text": "Hi"}],
+                },
             ],
         )
         self.assertEqual(
-            request["config"],
-            {"max_output_tokens": 123, "system_instruction": "Be concise"},
+            request["system_instruction"],
+            "Be concise",
         )
+        self.assertEqual(
+            request["generation_config"], {"max_output_tokens": 123}
+        )
+        self.assertFalse(request["store"])
         self.assertTrue(async_client.closed)
 
 

@@ -31,11 +31,14 @@ project's Production environment:
 - `GEMINI_MODEL`: optional; defaults to `gemini-3.8-flash`.
 
 The official asynchronous Google Gen AI SDK is included in the backend
-dependencies. After setting `GEMINI_API_KEY` and `AI_PROVIDER=gemini` in Vercel,
-redeploy the backend and verify a real chat response. OpenAI remains optional
-and requires its separate SDK and API key. A missing key or SDK never silently
-returns mock answers; the chat will report that it cannot respond and the
-backend will log the provider configuration error.
+dependencies. Gemini requests use the Interactions API with stateless
+conversation history (`store=false`), so chat content is not retained by
+Google for server-side conversation state. After setting `GEMINI_API_KEY` and
+`AI_PROVIDER=gemini` in Vercel, redeploy the backend and verify a real chat
+response. OpenAI remains optional and requires its separate SDK and API key. A
+missing key or SDK never silently returns mock answers; the chat will report
+that it cannot respond and the backend will log the provider configuration
+error.
 
 The backend's `pyproject.toml` runs Alembic migrations during the build. If the
 database URL is missing or unavailable, the build should fail rather than

@@ -480,7 +480,7 @@ requires-dist = [
     { name = "bcrypt", specifier = "<4.1" },
     { name = "email-validator" },
     { name = "fastapi" },
-    { name = "google-genai", specifier = ">=1.0,<3.0" },
+    { name = "google-genai", specifier = ">=2.3,<3.0" },
     { name = "passlib", extras = ["bcrypt"] },
     { name = "psycopg", extras = ["binary"] },
     { name = "pydantic-settings" },
