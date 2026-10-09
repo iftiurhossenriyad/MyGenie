@@ -26,6 +26,13 @@ project's Production environment:
   different domain).
 - `AI_PROVIDER`: `mock` until a valid Gemini/OpenAI API key is configured.
 
+The Gemini and OpenAI SDKs are not part of the default backend dependency set.
+Before changing `AI_PROVIDER` from `mock`, add the matching SDK to
+`backend/pyproject.toml` and `backend/uv.lock`, then set its API key as a Vercel
+environment variable. A missing key or SDK no longer silently returns mock
+answers; the chat will report that it cannot respond and the backend will log
+the provider configuration error.
+
 The backend's `pyproject.toml` runs Alembic migrations during the build. If the
 database URL is missing or unavailable, the build should fail rather than
 silently switching to temporary SQLite. After deployment, verify `/health`,

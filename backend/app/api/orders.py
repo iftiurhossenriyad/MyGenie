@@ -40,7 +40,13 @@ def create_order(
 ):
     """Create an order with server-calculated totals."""
     verify_workspace_membership(db, workspace_id, current_user.id)
-    return order_service.create_order(db, workspace_id, order_data)
+    try:
+        return order_service.create_order(db, workspace_id, order_data)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
 
 
 @router.get(

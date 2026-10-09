@@ -4,6 +4,7 @@ import uuid
 
 from sqlalchemy.orm import Session
 
+from app.models.customer import Customer
 from app.models.order import Order, OrderItem
 from app.models.product import Product
 from app.schemas.order import OrderCreate, OrderStatusUpdate, OrderUpdate
@@ -16,13 +17,51 @@ def generate_order_number() -> str:
 
 def create_order(db: Session, workspace_id: int, order_data: OrderCreate) -> Order:
     """Create an order with server-side calculated totals."""
-    subtotal = Decimal("0")
+    if order_data.customer_id is not None:
+        customer = (
+            db.query(Customer)
+            .filter(
+                Customer.id == order_data.customer_id,
+                Customer.workspace_id == workspace_id,
+            )
+            .first()
+        )
+        if not customer:
+            raise ValueError("Customer not found in this workspace")
 
-    order_items_data = []
+    subtotal = Decimal("0")
+    order_items = []
     for item_data in order_data.items:
-        line_total = item_data.unit_price_snapshot * item_data.quantity
+        product = None
+        if item_data.product_id is not None:
+            product = (
+                db.query(Product)
+                .filter(
+                    Product.id == item_data.product_id,
+                    Product.workspace_id == workspace_id,
+                    Product.status == "active",
+                    Product.is_available.is_(True),
+                )
+                .first()
+            )
+            if not product:
+                raise ValueError("Product not found or unavailable in this workspace")
+            if product.currency != order_data.currency:
+                raise ValueError("Order and product currencies must match")
+
+        unit_price = product.price if product else item_data.unit_price_snapshot
+        product_name = product.name if product else item_data.product_name_snapshot
+        line_total = unit_price * item_data.quantity
         subtotal += line_total
-        order_items_data.append((item_data, line_total))
+        order_items.append(
+            OrderItem(
+                product_id=product.id if product else None,
+                product_name_snapshot=product_name,
+                unit_price_snapshot=unit_price,
+                quantity=item_data.quantity,
+                line_total=line_total,
+            )
+        )
 
     total = subtotal + order_data.delivery_fee
 
@@ -37,22 +76,9 @@ def create_order(db: Session, workspace_id: int, order_data: OrderCreate) -> Ord
         currency=order_data.currency,
         delivery_details=order_data.delivery_details,
         customer_notes=order_data.customer_notes,
+        items=order_items,
     )
     db.add(new_order)
-    db.commit()
-    db.refresh(new_order)
-
-    for item_data, line_total in order_items_data:
-        order_item = OrderItem(
-            order_id=new_order.id,
-            product_id=item_data.product_id,
-            product_name_snapshot=item_data.product_name_snapshot,
-            unit_price_snapshot=item_data.unit_price_snapshot,
-            quantity=item_data.quantity,
-            line_total=line_total,
-        )
-        db.add(order_item)
-
     db.commit()
     db.refresh(new_order)
     return new_order

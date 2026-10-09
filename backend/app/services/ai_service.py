@@ -6,7 +6,7 @@ source of truth for business records. Business answers are grounded in the
 workspace's published FAQs and business profile.
 """
 import logging
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 from sqlalchemy.orm import Session
 
@@ -33,7 +33,7 @@ Context about the business is provided below. Use it to answer accurately.
 """
 
 
-def build_faq_context(db: Session, workspace_id: int, user_message: str) -> str:
+def build_faq_context(db: Session, workspace_id: int) -> str:
     """
     Build FAQ context string for a workspace.
     For MVP, include all published FAQs. Future: use embedding-based retrieval.
@@ -133,7 +133,7 @@ async def generate_ai_response(
     """
     # 1. Build grounded context
     business_context = build_business_context(db, conversation.workspace_id)
-    faq_context = build_faq_context(db, conversation.workspace_id, user_message)
+    faq_context = build_faq_context(db, int(conversation.workspace_id))
 
     # 2. Build full system prompt
     full_system_prompt = (

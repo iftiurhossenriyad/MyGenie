@@ -146,7 +146,13 @@ def update_booking(
             detail="Booking not found",
         )
     verify_workspace_membership(db, booking.workspace_id, current_user.id)
-    return booking_service.update_booking(db, booking, booking_data)
+    try:
+        return booking_service.update_booking(db, booking, booking_data)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
 
 
 @router.post("/{booking_id}/cancel", response_model=BookingResponse)

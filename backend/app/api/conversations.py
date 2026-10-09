@@ -6,14 +6,12 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.api.deps import get_current_user
 from app.models.user import User
-from app.models.conversation import Conversation
 from app.schemas.conversation import (
     ConversationCreate,
-    ConversationUpdate,
     ConversationResponse,
     HandoffRequest,
 )
-from app.schemas.message import MessageCreate, MessageResponse, ChatRequest, ChatResponse
+from app.schemas.message import MessageResponse, ChatRequest, ChatResponse
 from app.services import (
     conversation_service,
     ai_service,

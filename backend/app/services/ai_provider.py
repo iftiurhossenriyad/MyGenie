@@ -5,6 +5,7 @@ This module provides a common interface for LLM providers.
 Concrete providers (OpenAI, Gemini, Claude) can be added by subclassing
 BaseAIProvider. The MockProvider is used during development without API keys.
 """
+import importlib
 import os
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
@@ -96,7 +97,7 @@ class GeminiProvider(BaseAIProvider):
         max_tokens: int = 500,
     ) -> str:
         try:
-            import google.generativeai as genai
+            genai = importlib.import_module("google.generativeai")
         except ImportError:
             raise RuntimeError(
                 "google-generativeai package not installed. "
@@ -154,13 +155,13 @@ class OpenAIProvider(BaseAIProvider):
         max_tokens: int = 500,
     ) -> str:
         try:
-            from openai import OpenAI
+            openai_module = importlib.import_module("openai")
         except ImportError:
             raise RuntimeError(
                 "openai package not installed. Run: pip install openai"
             )
 
-        client = OpenAI(api_key=self.api_key)
+        client = openai_module.OpenAI(api_key=self.api_key)
 
         full_messages = []
         if system_prompt:
@@ -180,9 +181,11 @@ class OpenAIProvider(BaseAIProvider):
 
 def get_ai_provider() -> BaseAIProvider:
     """
-    Factory function to get the configured AI provider.
-    Falls back to MockAIProvider when the selected provider is unavailable,
-    misconfigured, or the SDK dependency is missing.
+    Return the explicitly configured AI provider.
+
+    Mock responses are used only when AI_PROVIDER is set to "mock"; a
+    misconfigured real provider must not appear to work by silently returning
+    development responses.
     """
     from app.core.config import settings
 
@@ -191,21 +194,28 @@ def get_ai_provider() -> BaseAIProvider:
     if provider_name == "gemini":
         api_key = getattr(settings, "GEMINI_API_KEY", None)
         if not api_key:
-            return MockAIProvider()
+            raise RuntimeError("GEMINI_API_KEY is required when AI_PROVIDER=gemini")
         try:
-            import google.generativeai  # noqa: F401
-        except ImportError:
-            return MockAIProvider()
+            importlib.import_module("google.generativeai")
+        except ImportError as exc:
+            raise RuntimeError(
+                "The google-generativeai package is required when AI_PROVIDER=gemini"
+            ) from exc
         return GeminiProvider(api_key=api_key)
-    elif provider_name == "openai":
+
+    if provider_name == "openai":
         api_key = getattr(settings, "OPENAI_API_KEY", None)
         if not api_key:
-            return MockAIProvider()
+            raise RuntimeError("OPENAI_API_KEY is required when AI_PROVIDER=openai")
         try:
-            import openai  # noqa: F401
-        except ImportError:
-            return MockAIProvider()
+            importlib.import_module("openai")
+        except ImportError as exc:
+            raise RuntimeError(
+                "The openai package is required when AI_PROVIDER=openai"
+            ) from exc
         return OpenAIProvider(api_key=api_key)
 
-    # Default: Mock provider
-    return MockAIProvider()
+    if provider_name == "mock":
+        return MockAIProvider()
+
+    raise ValueError(f"Unsupported AI_PROVIDER: {provider_name}")

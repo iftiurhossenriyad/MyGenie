@@ -58,8 +58,7 @@ def adjust_stock(db: Session, product: Product, quantity_change: int) -> Product
     if new_quantity < 0:
         raise ValueError("Stock quantity cannot be negative")
     product.stock_quantity = new_quantity
-    if new_quantity == 0:
-        product.is_available = False
+    product.is_available = new_quantity > 0 and product.status == "active"
     db.commit()
     db.refresh(product)
     return product

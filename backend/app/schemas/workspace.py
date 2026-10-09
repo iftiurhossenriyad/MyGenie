@@ -1,11 +1,15 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from datetime import datetime
-from typing import Optional
 
 
 class WorkspaceBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=150)
     type: str = Field(default="business", pattern="^(personal|business)$")
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def strip_workspace_name(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
 
 
 class WorkspaceCreate(WorkspaceBase):

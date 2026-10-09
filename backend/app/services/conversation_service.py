@@ -7,9 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.models.conversation import Conversation
 from app.models.message import Message
-from app.models.faq import FAQ
 from app.schemas.conversation import ConversationCreate, ConversationUpdate
-from app.schemas.message import MessageCreate
 
 
 def create_conversation(
