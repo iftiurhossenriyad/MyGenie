@@ -1,6 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, type ReactNode } from 'react';
-import api from '../lib/api';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react';
+import api, { AUTH_EXPIRED_EVENT } from '../lib/api';
 import type { User, UserLogin, UserCreate, AuthResponse } from '../types';
 
 interface AuthContextType {
@@ -28,6 +34,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('mygenie_token'));
   const [loading] = useState(false);
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      setToken(null);
+      setUser(null);
+    };
+
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    };
+  }, []);
 
   const login = async (credentials: UserLogin) => {
     const response = await api.post<AuthResponse>('/api/v1/auth/login', credentials);

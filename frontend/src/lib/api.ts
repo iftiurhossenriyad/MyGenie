@@ -1,5 +1,7 @@
 import axios, { AxiosError } from 'axios';
 
+export const AUTH_EXPIRED_EVENT = 'mygenie:auth-expired';
+
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.DEV ? 'http://127.0.0.1:8000' : '');
@@ -30,10 +32,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('mygenie_token');
       localStorage.removeItem('mygenie_user');
-      if (!window.location.pathname.startsWith('/login') &&
-          !window.location.pathname.startsWith('/register')) {
-        window.location.href = '/login';
-      }
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
     }
     return Promise.reject(error);
   }
