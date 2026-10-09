@@ -83,7 +83,7 @@ class GeminiProvider(BaseAIProvider):
     Google Gemini provider. Requires GEMINI_API_KEY and the google-genai SDK.
     """
 
-    def __init__(self, api_key: str, model: str = "gemini-2.5-flash"):
+    def __init__(self, api_key: str, model: str = "gemini-3.8-flash"):
         self.api_key = api_key
         self.model = model
 
@@ -192,7 +192,7 @@ def get_ai_provider() -> BaseAIProvider:
             ) from exc
         return GeminiProvider(
             api_key=api_key,
-            model=getattr(settings, "GEMINI_MODEL", "gemini-2.5-flash"),
+            model=getattr(settings, "GEMINI_MODEL", "gemini-3.8-flash"),
         )
 
     if provider_name == "openai":

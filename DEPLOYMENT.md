@@ -28,7 +28,7 @@ project's Production environment:
   you intentionally want deterministic development responses.
 - `GEMINI_API_KEY`: create a key in [Google AI Studio](https://aistudio.google.com/app/apikey)
   and save it as a Vercel secret. Never commit it or send it in chat.
-- `GEMINI_MODEL`: optional; defaults to `gemini-2.5-flash`.
+- `GEMINI_MODEL`: optional; defaults to `gemini-3.8-flash`.
 
 The official asynchronous Google Gen AI SDK is included in the backend
 dependencies. After setting `GEMINI_API_KEY` and `AI_PROVIDER=gemini` in Vercel,

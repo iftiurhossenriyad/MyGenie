@@ -59,17 +59,17 @@ export default function Layout({ children, title }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-64 bg-navy text-white flex flex-col">
+      <aside className="w-full md:w-64 md:shrink-0 bg-navy text-white flex flex-col">
         {/* Logo */}
-        <div className="p-6 border-b border-navy-light">
-          <h1 className="text-2xl font-bold text-gold">MyGenie</h1>
-          <p className="text-xs text-gray-400 mt-1">One Assistant, Endless Possibilities</p>
+        <div className="px-4 py-3 md:p-6 border-b border-navy-light">
+          <h1 className="text-xl md:text-2xl font-bold text-gold">MyGenie</h1>
+          <p className="hidden sm:block text-xs text-gray-400 mt-1">One Assistant, Endless Possibilities</p>
         </div>
 
         {/* Mode Switcher */}
-        <div className="p-4 border-b border-navy-light relative">
+        <div className="p-3 md:p-4 border-b border-navy-light relative">
           <button
             onClick={() => setShowSwitcher(!showSwitcher)}
             className="w-full text-left px-3 py-2 rounded-lg bg-navy-light hover:bg-navy-dark transition-colors"
@@ -132,35 +132,35 @@ export default function Layout({ children, title }: LayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex md:flex-1 md:flex-col gap-2 md:gap-1 p-2 md:p-4 overflow-x-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`block px-4 py-3 rounded-lg transition-colors ${
+                className={`block shrink-0 px-3 py-2 md:px-4 md:py-3 rounded-lg transition-colors ${
                   isActive
                     ? 'bg-gold text-navy font-semibold'
                     : 'text-gray-300 hover:bg-navy-light'
                 }`}
               >
-                <div className="font-medium">{item.label}</div>
-                <div className="text-xs opacity-75 bengali">{item.labelBn}</div>
+                <div className="text-sm md:text-base font-medium whitespace-nowrap">{item.label}</div>
+                <div className="hidden md:block text-xs opacity-75 bengali">{item.labelBn}</div>
               </Link>
             );
           })}
         </nav>
 
         {/* User Section */}
-        <div className="p-4 border-t border-navy-light">
-          <div className="text-sm text-gray-300 mb-2">
-            <div className="font-semibold text-white">{user?.name}</div>
-            <div className="text-xs">{user?.email}</div>
+        <div className="flex items-center gap-3 p-3 md:block md:p-4 border-t border-navy-light">
+          <div className="min-w-0 flex-1 text-sm text-gray-300 md:mb-2">
+            <div className="font-semibold text-white truncate">{user?.name}</div>
+            <div className="text-xs truncate">{user?.email}</div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full px-3 py-2 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+            className="shrink-0 px-3 py-2 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors md:w-full"
           >
             Sign Out
           </button>
@@ -168,19 +168,19 @@ export default function Layout({ children, title }: LayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col">
-        <header className="bg-white border-b border-gray-200 px-8 py-4">
+      <main className="min-w-0 flex-1 flex flex-col">
+        <header className="bg-white border-b border-gray-200 px-4 py-3 md:px-8 md:py-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-navy">
+            <h2 className="text-xl md:text-2xl font-bold text-navy">
               {title || 'Dashboard'}
             </h2>
-            <div className="text-sm text-gray-500">
+            <div className="hidden sm:block text-sm text-gray-500">
               Welcome back, <span className="font-semibold text-navy">{user?.name}</span>
             </div>
           </div>
         </header>
 
-        <div className="flex-1 p-8 overflow-auto">{children}</div>
+        <div className="min-w-0 flex-1 p-4 md:p-8 overflow-auto">{children}</div>
       </main>
     </div>
   );

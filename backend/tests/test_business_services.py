@@ -362,6 +362,9 @@ class BusinessServiceTests(unittest.TestCase):
 
 
 class AIProviderConfigurationTests(unittest.TestCase):
+    def test_gemini_provider_defaults_to_current_model(self):
+        self.assertEqual(GeminiProvider("test-key").model, "gemini-3.8-flash")
+
     def test_mock_is_selected_only_when_explicitly_configured(self):
         with patch.object(settings, "AI_PROVIDER", "mock"):
             self.assertIsInstance(get_ai_provider(), MockAIProvider)

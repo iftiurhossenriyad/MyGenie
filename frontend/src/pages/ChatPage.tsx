@@ -173,10 +173,10 @@ export default function ChatPage() {
 
   return (
     <Layout title="AI Chat">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-[calc(100vh-180px)]">
+      <div className="grid min-h-[calc(100dvh-18rem)] grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-3 lg:h-[calc(100vh-180px)] lg:min-h-0 lg:grid-cols-4 lg:grid-rows-1 lg:gap-4">
         {/* Conversations List */}
-        <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col">
-          <div className="p-4 border-b border-gray-100">
+        <div className="min-h-0 max-h-28 lg:max-h-none lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col">
+          <div className="p-3 md:p-4 border-b border-gray-100">
             <button
               onClick={handleNewConversation}
               className="btn btn-primary w-full text-sm"
@@ -220,7 +220,7 @@ export default function ChatPage() {
         </div>
 
         {/* Chat Area */}
-        <div className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col">
+        <div className="min-h-0 min-w-0 lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col">
           {!activeConversation ? (
             <div className="flex-1 flex items-center justify-center text-gray-400">
               <div className="text-center">
@@ -231,8 +231,8 @@ export default function ChatPage() {
           ) : (
             <>
               {/* Chat Header */}
-              <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                <div>
+              <div className="p-3 md:p-4 border-b border-gray-100 flex items-center justify-between gap-2">
+                <div className="min-w-0">
                   <h3 className="font-semibold text-navy">
                     Chat #{activeConversation.id}
                   </h3>
@@ -250,7 +250,7 @@ export default function ChatPage() {
                     activeConversation.status !== 'closed' && (
                       <button
                         onClick={handleHandoff}
-                        className="text-xs px-3 py-1 bg-orange-100 text-orange-700 hover:bg-orange-200 rounded"
+                        className="shrink-0 text-xs px-3 py-2 bg-orange-100 text-orange-700 hover:bg-orange-200 rounded"
                       >
                         Handoff to Staff
                       </button>
@@ -259,7 +259,7 @@ export default function ChatPage() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-auto p-4 space-y-3">
+              <div className="min-h-0 flex-1 overflow-auto p-3 md:p-4 space-y-3">
                 {messages.length === 0 ? (
                   <div className="text-center text-gray-400 py-8">
                     <p className="mb-2">👋 Hello! I'm MyGenie Assistant.</p>
@@ -274,7 +274,7 @@ export default function ChatPage() {
                       }`}
                     >
                       <div
-                        className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                        className={`max-w-[88%] md:max-w-[70%] rounded-2xl px-4 py-2 ${
                           msg.sender_type === 'user'
                             ? 'bg-navy text-white'
                             : msg.sender_type === 'assistant'
@@ -284,7 +284,7 @@ export default function ChatPage() {
                             : 'bg-gold text-navy-dark'
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                        <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                         <p
                           className={`text-xs mt-1 ${
                             msg.sender_type === 'user'
@@ -304,11 +304,11 @@ export default function ChatPage() {
               {/* Input */}
               <form
                 onSubmit={handleSend}
-                className="p-4 border-t border-gray-100 flex gap-2"
+                className="p-3 md:p-4 border-t border-gray-100 flex gap-2"
               >
                 <input
                   type="text"
-                  className="input flex-1"
+                  className="input min-w-0 flex-1"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type your message... / আপনার বার্তা লিখুন..."
