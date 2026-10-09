@@ -1,57 +1,56 @@
-# Deploying MyGenie
+# Deploying MyGenie on Vercel
 
-MyGenie uses a React/Vite frontend and a FastAPI backend. Deploy the frontend to
-Vercel and the API to a Python host such as Render. The database must be a
-persistent PostgreSQL service; do not use SQLite on an ephemeral web-service
-filesystem for a hosted application.
+MyGenie uses a React/Vite frontend, a FastAPI backend, and PostgreSQL. Deploy the
+backend and frontend as two Vercel projects connected to the same GitHub
+repository. Use a persistent PostgreSQL provider such as the Neon project
+created for MyGenie; do not use SQLite on a serverless filesystem.
 
-## 1. Keep credentials private
+## Backend project
 
-- Do not commit `.env` files, API keys, database URLs, or real user data.
-- `backend/.env.example` and `frontend/.env.example` are templates only.
-- Keep the GitHub repository private unless you intentionally want the source
-  code to be public.
+Create a Vercel project from `iftiurhossenriyad/MyGenie` with:
 
-## 2. Deploy the API
+- Root Directory: `backend`
+- Framework: FastAPI (or the detected Python framework)
+- Build Command: leave the default; `backend/pyproject.toml` runs database
+  migrations after Python dependencies are installed.
 
-1. Create a persistent PostgreSQL database with your chosen database provider.
-2. Create a Render Web Service from the GitHub repository, using
-   `render.yaml` as the blueprint, or enter its settings manually:
-   - Root directory: `backend`
-   - Build command: `pip install -r requirements.txt`
-   - Start command:
-     `alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port $PORT`
-   - Health check path: `/health`
-3. Set these service environment variables:
-   - `DATABASE_URL`: the PostgreSQL connection URL from your database provider
-   - `SECRET_KEY`: a randomly generated secret of at least 32 characters
-   - `ENVIRONMENT`: `production`
-   - `FRONTEND_ORIGINS`: the exact Vercel origin, e.g.
-     `https://your-project.vercel.app` (no trailing slash)
-   - `AI_PROVIDER`: `mock` until a valid Gemini/OpenAI credential is configured.
-     For live AI, set the provider and its API key in the host's secret settings.
-4. Deploy and check `https://<your-api-host>/health`.
+Add these environment variables in Vercel Project Settings (Production and any
+other environments you intend to use):
 
-The Render web service blueprint deliberately does not create a database. Attach
-a persistent PostgreSQL provider and set `DATABASE_URL`; this avoids silently
-deploying with temporary SQLite storage or unexpectedly provisioning a paid
-database. Free hosting tiers may sleep, have resource limits, or change their
-retention terms; confirm the provider's current terms before using one for real
-customer data.
+- `DATABASE_URL`: copy the PostgreSQL connection string directly from Neon into
+  this secret field. Do not commit it or send it in chat.
+- `SECRET_KEY`: generate a random value of at least 32 characters and save it as
+  a Vercel secret.
+- `ENVIRONMENT`: `production`
+- `FRONTEND_ORIGINS`: the exact frontend origin after the frontend is deployed,
+  e.g. `https://mygenie-frontend.vercel.app` (no trailing slash).
+- `AI_PROVIDER`: `mock` until a valid Gemini/OpenAI API key is configured.
 
-## 3. Deploy the frontend
+Deploy the backend, then test `https://<backend-project>.vercel.app/health`.
+The build runs Alembic migrations against `DATABASE_URL`; it will fail rather
+than silently switching to temporary SQLite if the database is unavailable.
 
-1. Import the repository into Vercel.
-2. Set the project Root Directory to `frontend`.
-3. Use `npm run build` as the build command and `dist` as the output directory.
-   `frontend/vercel.json` enables client-side route fallback for React Router.
-4. Set the Vercel environment variable `VITE_API_URL` to the deployed API origin,
-   e.g. `https://your-api.onrender.com` (no trailing slash), then redeploy.
-5. Add the final Vercel origin to the API's `FRONTEND_ORIGINS` and redeploy the
-   API if needed.
+## Frontend project
 
-## 4. Local verification
+Create another Vercel project from the same GitHub repository with:
 
-From `frontend`, run `npm run lint` and `npm run build`. From `backend`, run
-`alembic upgrade head` against a development database and start the API with
-`uvicorn main:app --reload`.
+- Root Directory: `frontend`
+- Build Command: `npm run build`
+- Output Directory: `dist`
+- Environment variable `VITE_API_URL`: `https://<backend-project>.vercel.app`
+  (no trailing slash).
+
+Deploy the frontend, then set `FRONTEND_ORIGINS` on the backend to the exact
+frontend origin and redeploy the backend. `frontend/vercel.json` handles
+React Router page refreshes.
+
+## Notes
+
+- The Neon PostgreSQL project is in Singapore to reduce latency for Bangladesh.
+- Vercel and Neon free tiers have usage, resource, and service limits that can
+  change. Review current terms and monitor usage before using this for real
+  customers.
+- The public GitHub repository excludes `.env` files, database files, and
+  virtual environments. Never add credentials or private customer data to it.
+- For local development, use `frontend/.env.example` and `backend/.env.example`
+  as templates; keep the actual `.env` files untracked.
