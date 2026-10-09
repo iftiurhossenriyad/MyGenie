@@ -107,6 +107,11 @@ export interface ChatResponse {
 }
 
 // ============ Generic API Error ============
+export interface ApiValidationIssue {
+  loc?: Array<string | number>;
+  msg?: string;
+}
+
 export interface ApiError {
-  detail: string;
+  detail: string | ApiValidationIssue[];
 }

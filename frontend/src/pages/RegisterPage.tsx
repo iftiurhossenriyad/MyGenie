@@ -1,8 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { isAxiosError } from 'axios';
 import { useAuth } from '../context/AuthContext';
-import type { ApiError } from '../types';
+import { getApiErrorMessage } from '../lib/apiErrors';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -30,10 +29,9 @@ export default function RegisterPage() {
       await register({ name, email, phone: phone || undefined, password });
       navigate('/dashboard');
     } catch (error: unknown) {
-      const apiError = isAxiosError<ApiError>(error)
-        ? error.response?.data
-        : undefined;
-      setError(apiError?.detail || 'Registration failed. Please try again.');
+      setError(
+        getApiErrorMessage(error, 'Registration failed. Please try again.')
+      );
     } finally {
       setLoading(false);
     }

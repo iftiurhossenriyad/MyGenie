@@ -1,8 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { isAxiosError } from 'axios';
 import { useAuth } from '../context/AuthContext';
-import type { ApiError } from '../types';
+import { getApiErrorMessage } from '../lib/apiErrors';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -22,10 +21,7 @@ export default function LoginPage() {
       await login({ email, password });
       navigate('/dashboard');
     } catch (error: unknown) {
-      const apiError = isAxiosError<ApiError>(error)
-        ? error.response?.data
-        : undefined;
-      setError(apiError?.detail || 'Login failed. Please try again.');
+      setError(getApiErrorMessage(error, 'Login failed. Please try again.'));
     } finally {
       setLoading(false);
     }
