@@ -51,30 +51,14 @@ class MockAIProvider(BaseAIProvider):
                 user_message = msg.get("content", "").lower()
                 break
 
-        # Simple keyword-based mock responses
+        # Keep the mock provider from inventing workspace-specific business facts.
         if any(word in user_message for word in ["hello", "hi", "হ্যালো", "হাই", "assalam", "salam"]):
             return "Hello! আমি MyGenie Assistant। আপনাকে কীভাবে সাহায্য করতে পারি?"
 
-        if any(word in user_message for word in ["hour", "time", "khola", "খোলা", "সময়", "কখন"]):
-            return "দোকান খোলার সময়: সকাল ৯টা থেকে রাত ৯টা পর্যন্ত (শুক্রবার বন্ধ)।"
-
-        if any(word in user_message for word in ["price", "cost", "দাম", "কত", "মূল্য"]):
-            return "দাম সম্পর্কে জানতে আমাদের product catalog দেখুন বা আমাদের staff-এর সাথে যোগাযোগ করুন।"
-
-        if any(word in user_message for word in ["delivery", "ডেলিভারি", "পাঠানো"]):
-            return "ঢাকার ভেতরে ফ্রি ডেলিভারি। ঢাকার বাইরে অতিরিক্ত চার্জ প্রযোজ্য।"
-
-        if any(word in user_message for word in ["order", "অর্ডার", "কিনতে", "কিনব"]):
-            return "অর্ডার করতে আপনার পণ্য এবং পরিমাণ জানান। আমি আপনাকে সাহায্য করব।"
-
-        if any(word in user_message for word in ["booking", "বুকিং", "appointment", "অ্যাপয়েন্টমেন্ট"]):
-            return "বুকিং করতে অনুগ্রহ করে তারিখ এবং সময় জানান। আমি availability check করব।"
-
-        # Default response
         return (
-            "আমি আপনার প্রশ্নটি বুঝতে পেরেছি। তবে এই বিষয়ে আমার নির্দিষ্ট তথ্য নেই। "
-            "আমি আপনাকে আমাদের staff-এর সাথে সংযুক্ত করে দিচ্ছি। "
-            "অথবা আপনি আমাদের FAQ দেখতে পারেন।"
+            "AI_PROVIDER=mock is enabled, so this development response cannot "
+            "use your workspace data. Configure a real AI provider to test "
+            "grounded answers."
         )
 
 

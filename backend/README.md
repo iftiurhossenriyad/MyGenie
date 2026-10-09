@@ -66,9 +66,36 @@ MyGenie is a Bangla-first, bilingual AI assistant for small businesses with a se
 
 \- ✅ Provider-agnostic AI adapter (Mock, Gemini, OpenAI)
 
-\- ✅ Grounded responses from workspace FAQs
+\- ✅ Business-mode responses grounded in the business profile, published FAQs, active products, and active services
+
+\- ✅ Personal-mode assistant instructions that do not claim access to personal records
 
 \- ✅ Human handoff workflow
+
+\#### What the AI can answer
+
+In a **business workspace**, MyGenie can answer questions about product names,
+descriptions, listed prices and recorded stock; service descriptions, prices
+and durations; and business hours, contact details, delivery, and policies.
+It uses the current workspace's business profile, active catalog entries, and
+published FAQs. Draft FAQs, archived products, and data from other workspaces
+are not included in its context.
+
+Examples of supported questions include “এই পণ্যের দাম কত?” / “What is the
+listed price?”, “দোকান কখন খোলা?” / “What are your opening hours?”, and “এই
+সার্ভিস কতক্ষণ?” / “How long is this service?”. The answer uses the actual
+workspace data; it must not make up missing prices, stock, hours, delivery
+rules, or policies. Recorded stock is not a live reservation. Chat cannot
+create an order or booking or check appointment availability; customers should
+use the configured order/booking process or the **Handoff to Staff** control.
+
+In a **personal workspace**, MyGenie can help plan, draft, learn, and organize,
+but it cannot read or modify saved tasks, notes, or appointments through chat.
+
+To make business answers accurate, add the real details under the workspace's
+Business Profile, add products and services to their catalogs, and create and
+publish FAQs for business-specific questions. Do not add fictional prices,
+policies, opening hours, or delivery promises as examples in production data.
 
 
 
