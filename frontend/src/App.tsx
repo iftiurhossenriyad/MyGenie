@@ -13,6 +13,7 @@ import OrdersPage from './pages/OrdersPage';
 import BookingsPage from './pages/BookingsPage';
 import FAQsPage from './pages/FAQsPage';
 import ChatPage from './pages/ChatPage';
+import CreateWorkspacePage from './pages/CreateWorkspacePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/notes" element={<ProtectedRoute><NotesPage /></ProtectedRoute>} />
         <Route path="/appointments" element={<ProtectedRoute><AppointmentsPage /></ProtectedRoute>} />
         <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+        <Route path="/workspaces/new" element={<ProtectedRoute><CreateWorkspacePage /></ProtectedRoute>} />
         <Route path="/business" element={<ProtectedRoute><BusinessDashboardPage /></ProtectedRoute>} />
         <Route path="/business/profile" element={<ProtectedRoute><BusinessProfilePage /></ProtectedRoute>} />
         <Route path="/business/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
