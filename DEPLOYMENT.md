@@ -24,14 +24,18 @@ project's Production environment:
 - `FRONTEND_ORIGINS`: the Vercel project origin, e.g.
   `https://mygenie.vercel.app` (no trailing slash; adjust if Vercel assigns a
   different domain).
-- `AI_PROVIDER`: `mock` until a valid Gemini/OpenAI API key is configured.
+- `AI_PROVIDER`: set to `gemini` after adding `GEMINI_API_KEY`; use `mock` if
+  you intentionally want deterministic development responses.
+- `GEMINI_API_KEY`: create a key in [Google AI Studio](https://aistudio.google.com/app/apikey)
+  and save it as a Vercel secret. Never commit it or send it in chat.
+- `GEMINI_MODEL`: optional; defaults to `gemini-2.5-flash`.
 
-The Gemini and OpenAI SDKs are not part of the default backend dependency set.
-Before changing `AI_PROVIDER` from `mock`, add the matching SDK to
-`backend/pyproject.toml` and `backend/uv.lock`, then set its API key as a Vercel
-environment variable. A missing key or SDK no longer silently returns mock
-answers; the chat will report that it cannot respond and the backend will log
-the provider configuration error.
+The official asynchronous Google Gen AI SDK is included in the backend
+dependencies. After setting `GEMINI_API_KEY` and `AI_PROVIDER=gemini` in Vercel,
+redeploy the backend and verify a real chat response. OpenAI remains optional
+and requires its separate SDK and API key. A missing key or SDK never silently
+returns mock answers; the chat will report that it cannot respond and the
+backend will log the provider configuration error.
 
 The backend's `pyproject.toml` runs Alembic migrations during the build. If the
 database URL is missing or unavailable, the build should fail rather than

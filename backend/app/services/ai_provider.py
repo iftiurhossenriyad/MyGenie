@@ -6,7 +6,6 @@ Concrete providers (OpenAI, Gemini, Claude) can be added by subclassing
 BaseAIProvider. The MockProvider is used during development without API keys.
 """
 import importlib
-import os
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
 
@@ -81,14 +80,12 @@ class MockAIProvider(BaseAIProvider):
 
 class GeminiProvider(BaseAIProvider):
     """
-    Google Gemini provider. Requires GEMINI_API_KEY in .env.
-
-    Uses a stable Gemini 2.x Flash model that is supported by the official SDK.
+    Google Gemini provider. Requires GEMINI_API_KEY and the google-genai SDK.
     """
 
-    def __init__(self, api_key: str, model: Optional[str] = None):
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash"):
         self.api_key = api_key
-        self.model = model or os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+        self.model = model
 
     async def generate_response(
         self,
@@ -97,46 +94,38 @@ class GeminiProvider(BaseAIProvider):
         max_tokens: int = 500,
     ) -> str:
         try:
-            genai = importlib.import_module("google.generativeai")
+            genai = importlib.import_module("google.genai")
         except ImportError:
             raise RuntimeError(
-                "google-generativeai package not installed. "
-                "Run: pip install google-generativeai"
-            )
+                "google-genai package is not installed. "
+                "Install the backend dependencies before selecting Gemini."
+            ) from None
 
-        genai.configure(api_key=self.api_key)
-
-        # Build prompt from messages
-        prompt_parts = []
+        client = genai.Client(api_key=self.api_key)
+        async_client = client.aio
+        contents = [
+            {
+                "role": "model" if message.get("role") == "assistant" else "user",
+                "parts": [{"text": message.get("content", "")}],
+            }
+            for message in messages
+        ]
+        config: Dict[str, object] = {"max_output_tokens": max_tokens}
         if system_prompt:
-            prompt_parts.append(f"System: {system_prompt}")
-        for msg in messages:
-            role = msg.get("role", "user")
-            content = msg.get("content", "")
-            prompt_parts.append(f"{role.capitalize()}: {content}")
+            config["system_instruction"] = system_prompt
 
-        full_prompt = "\n".join(prompt_parts)
-
-        candidates = list(dict.fromkeys([self.model, "gemini-2.5-flash", "gemini-1.5-flash"]))
-        last_error = None
-
-        for model_name in candidates:
-            try:
-                model = genai.GenerativeModel(model_name)
-                response = model.generate_content(
-                    full_prompt,
-                    generation_config={"max_output_tokens": max_tokens},
-                )
-                return response.text
-            except Exception as exc:  # pragma: no cover - network and provider issues
-                last_error = exc
-                message = str(exc).lower()
-                if "not found" not in message and "not available" not in message:
-                    raise
-
-        if last_error is not None:
-            raise last_error
-        raise RuntimeError("Gemini request failed with no provider response")
+        try:
+            response = await async_client.models.generate_content(
+                model=self.model,
+                contents=contents,
+                config=config,
+            )
+            text = response.text
+            if not text or not text.strip():
+                raise RuntimeError("Gemini returned an empty response")
+            return text.strip()
+        finally:
+            await async_client.aclose()
 
 
 class OpenAIProvider(BaseAIProvider):
@@ -196,12 +185,15 @@ def get_ai_provider() -> BaseAIProvider:
         if not api_key:
             raise RuntimeError("GEMINI_API_KEY is required when AI_PROVIDER=gemini")
         try:
-            importlib.import_module("google.generativeai")
+            importlib.import_module("google.genai")
         except ImportError as exc:
             raise RuntimeError(
-                "The google-generativeai package is required when AI_PROVIDER=gemini"
+                "The google-genai package is required when AI_PROVIDER=gemini"
             ) from exc
-        return GeminiProvider(api_key=api_key)
+        return GeminiProvider(
+            api_key=api_key,
+            model=getattr(settings, "GEMINI_MODEL", "gemini-2.5-flash"),
+        )
 
     if provider_name == "openai":
         api_key = getattr(settings, "OPENAI_API_KEY", None)

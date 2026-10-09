@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from fastapi import HTTPException
 from sqlalchemy import create_engine
@@ -23,7 +23,7 @@ from app.schemas.booking import BookingCreate, BookingUpdate
 from app.schemas.order import OrderCreate, OrderItemCreate
 from app.schemas.workspace import WorkspaceCreate
 from app.services import booking_service, order_service, product_service
-from app.services.ai_provider import MockAIProvider, get_ai_provider
+from app.services.ai_provider import GeminiProvider, MockAIProvider, get_ai_provider
 from app.core.config import settings
 
 
@@ -374,10 +374,87 @@ class AIProviderConfigurationTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "OPENAI_API_KEY is required"):
                 get_ai_provider()
 
+    def test_gemini_without_key_fails_instead_of_using_mock(self):
+        with (
+            patch.object(settings, "AI_PROVIDER", "gemini"),
+            patch.object(settings, "GEMINI_API_KEY", None),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "GEMINI_API_KEY is required"):
+                get_ai_provider()
+
+    def test_gemini_provider_uses_the_configured_model(self):
+        with (
+            patch.object(settings, "AI_PROVIDER", "gemini"),
+            patch.object(settings, "GEMINI_API_KEY", "test-key"),
+            patch.object(settings, "GEMINI_MODEL", "gemini-test"),
+            patch("app.services.ai_provider.importlib.import_module"),
+        ):
+            provider = get_ai_provider()
+
+        self.assertIsInstance(provider, GeminiProvider)
+        self.assertEqual(provider.model, "gemini-test")
+
     def test_unknown_provider_is_rejected(self):
         with patch.object(settings, "AI_PROVIDER", "unknown"):
             with self.assertRaisesRegex(ValueError, "Unsupported AI_PROVIDER"):
                 get_ai_provider()
+
+
+class GeminiProviderTests(unittest.IsolatedAsyncioTestCase):
+    async def test_generate_response_sends_history_and_closes_async_client(self):
+        request = {}
+
+        class FakeModels:
+            async def generate_content(self, **kwargs):
+                request.update(kwargs)
+                return type("Response", (), {"text": "  Gemini reply  "})()
+
+        class FakeAsyncClient:
+            models = FakeModels()
+            closed = False
+
+            async def aclose(self):
+                self.closed = True
+
+        async_client = FakeAsyncClient()
+        client = type("Client", (), {"aio": async_client})()
+        sdk_client_factory = Mock(return_value=client)
+        sdk = type(
+            "GeminiSDK",
+            (),
+            {"Client": staticmethod(sdk_client_factory)},
+        )()
+
+        with patch(
+            "app.services.ai_provider.importlib.import_module",
+            return_value=sdk,
+        ) as import_module:
+            provider = GeminiProvider("test-key", "gemini-test")
+            result = await provider.generate_response(
+                [
+                    {"role": "user", "content": "Hello"},
+                    {"role": "assistant", "content": "Hi"},
+                ],
+                system_prompt="Be concise",
+                max_tokens=123,
+            )
+
+        import_module.assert_called_once_with("google.genai")
+        sdk_client_factory.assert_called_once_with(api_key="test-key")
+        self.assertEqual(result, "Gemini reply")
+        self.assertEqual(request["model"], "gemini-test")
+        self.assertEqual(
+            request["contents"],
+            [
+                {"role": "user", "parts": [{"text": "Hello"}]},
+                {"role": "model", "parts": [{"text": "Hi"}]},
+            ],
+        )
+        self.assertEqual(
+            request["config"],
+            {"max_output_tokens": 123, "system_instruction": "Be concise"},
+        )
+        self.assertTrue(async_client.closed)
 
 
 if __name__ == "__main__":
